@@ -8,7 +8,7 @@ function sourcePad(source) {
 var PokedexMovePanel = PokedexResultPanel.extend({
 	initialize: function(id) {
 		id = toID(id);
-		var move = Dex.moves.get(id);
+		var move = Dex.mod('gen3emeraldkaizo').moves.get(id);
 		this.id = id;
 		this.shortTitle = move.name;
 
@@ -46,6 +46,13 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 			case 'Custom':
 				buf += 'This is a custom move, not available during normal gameplay.';
 				break;
+			case 'Removed':
+				if (move.replacedBy) {
+					var newMove = Dex.mod('gen3emeraldkaizo').moves.get(move.replacedBy);
+					buf += 'This move was removed from the game, and replaced by <a href="/moves/'+newMove.id+'" data-target="push">'+newMove.name+'</a>.';
+				} else {
+					buf += 'This move was removed from the game.';
+				}
 			}
 			buf += '</div>';
 		}
@@ -60,7 +67,7 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 			buf += '<dl class="powerentry"><dt>Base power:</dt> <dd><strong>'+(move.basePower||'&mdash;')+'</strong></dd></dl>';
 		}
 		buf += '<dl class="accuracyentry"><dt>Accuracy:</dt> <dd>'+(move.accuracy && move.accuracy!==true?move.accuracy+'%':'&mdash;')+'</dd></dl>';
-		buf += '<dl class="ppentry"><dt>PP:</dt> <dd>'+(move.pp)+(move.pp>1 ? ' <small class="minor">(max: '+(8/5*move.pp)+')</small>' : '')+'</dd>';
+		buf += '<dl class="ppentry"><dt>PP:</dt> <dd>'+(move.pp)+/*(move.pp>1 ? ' <small class="minor">(max: '+(8/5*move.pp)+')</small>' : '')+*/'</dd>';
 		buf += '</dl><div style="clear:left;padding-top:1px"></div>';
 
 		if (move.isZ) {
@@ -395,8 +402,8 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 
 		// past gens
 		var pastGenChanges = false;
-		for (var genNum = Dex.gen - 1; genNum >= move.gen; genNum--) {
-			var nextGenMove = Dex.forGen(genNum + 1).moves.get(id);
+		for (var genNum = Dex.gen; genNum >= move.gen; genNum--) {
+			var nextGenMove = genNum < 3 ? Dex.forGen(genNum + 1).moves.get(id) : Dex.mod('gen3emeraldkaizo').moves.get(id);
 			var curGenMove = Dex.forGen(genNum).moves.get(id);
 			var changes = '';
 
@@ -440,7 +447,7 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 
 			if (changes) {
 				if (!pastGenChanges) buf += '<h3>Past gens</h3><dl>';
-				buf += '<dt>Gen ' + genNum + ' <i class="fa fa-arrow-right"></i> ' + (genNum + 1) + ':</dt>';
+				buf += '<dt>Gen ' + genNum + ' <i class="fa fa-arrow-right"></i> ' + ((genNum < 3) ? genNum + 1 : 'EK') + ':</dt>';
 				buf += '<dd>' + changes + '</dd>';
 				pastGenChanges = true;
 			}
@@ -547,7 +554,7 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 	renderRow: function(i, offscreen) {
 		var results = this.results;
 		var id = results[i].substr(5);
-		var template = id ? BattlePokedex[id] : undefined;
+		var template = id ? Dex.mod('gen3emeraldkaizo').species.get(id) : undefined;
 		if (!template) {
 			switch (results[i].charAt(0)) {
 			case 'A': // level-up move
@@ -570,7 +577,7 @@ var PokedexMovePanel = PokedexResultPanel.extend({
 			var desc = '';
 			switch (results[i].charAt(0)) {
 			case 'a': // level-up move
-				desc = results[i].substr(1,3) === '001' || results[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(parseInt(results[i].substr(1,3), 10) || '?');
+				desc = /*results[i].substr(1,3) === '001' || */results[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(parseInt(results[i].substr(1,3), 10) || '?');
 				break;
 			case 'b': // tm/hm
 				desc = '<img src="//' + Config.routes.client + '/sprites/itemicons/tm-normal.png" style="margin-top:-3px;opacity:.7" width="24" height="24" alt="M" />';

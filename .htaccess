@@ -3,13 +3,10 @@
 IndexIgnore .htaccess */.??* *~ *# */HEADER* */README* */_vti*
 
 <Limit GET POST>
-order deny,allow
-deny from all
-allow from all
+Require all granted
 </Limit>
 <Limit PUT DELETE>
-order deny,allow
-deny from all
+Require all granted
 </Limit>
 
 <IfModule mod_rewrite.c>
@@ -33,6 +30,8 @@ RewriteRule ^types(\/.*)?$ index.php [L,QSA]
 RewriteRule ^tiers(\/.*)?$ index.php [L,QSA]
 RewriteRule ^categories(\/.*)?$ index.php [L,QSA]
 RewriteRule ^articles\/([a-z0-9]+)\/?$ index.php [L,QSA]
+RewriteRule ^locations(\/.*)?$ index.php [L,QSA]
+RewriteRule ^encounters(\/.*)?$ index.php [L,QSA]
 
 RewriteRule ^\.git/ - [F]
 

@@ -1,7 +1,7 @@
 var PokedexPokemonPanel = PokedexResultPanel.extend({
 	initialize: function(id) {
 		id = toID(id);
-		var pokemon = Dex.species.get(id);
+		var pokemon = Dex.mod('gen3emeraldkaizo').species.get(id);
 		this.id = id;
 		this.shortTitle = pokemon.baseSpecies;
 
@@ -29,6 +29,8 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 				buf += '<div class="warning"><strong>Note:</strong> Pok&eacute;mon Let\'s Go, Pikachu! and Let\'s Go, Eevee! only.</div>';
 			} else if (pokemon.isNonstandard === 'Gigantamax') {
 				buf += '<div class="warning"><strong>Note:</strong> This Pok&eacute;mon is not obtainable in the games, even via hacking.</div>';
+			} else if (pokemon.isNonstandard === 'Unobtainable') {
+				buf += '<div class="warning"><strong>Note:</strong> This Pok&eacute;mon is not obtainable in the game.</div>';
 			} else if (pokemon.num > 0) {
 				buf += '<div class="warning"><strong>Note:</strong> This Pok&eacute;mon is unreleased.</div>';
 			} else {
@@ -86,7 +88,7 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			spd: "Sp. Def",
 			spe: "Speed"
 		};
-		buf += '<tr><td></td><td></td><td style="width:200px"></td><th class="ministat"><abbr title="0 IVs, 0 EVs, negative nature">min&minus;</a></th><th class="ministat"><abbr title="31 IVs, 0 EVs, neutral nature">min</abbr></th><th class="ministat"><abbr title="31 IVs, 252 EVs, neutral nature">max</abbr></th><th class="ministat"><abbr title="31 IVs, 252 EVs, positive nature">max+</abbr></th>';
+		buf += '<tr><td></td><td></td><td style="width:200px"></td><th class="ministat"><abbr title="0 IVs, negative nature">min&minus;</a></th><th class="ministat"><abbr title="0 IVs, neutral nature">min</abbr></th><th class="ministat"><abbr title="31 IVs, neutral nature">max</abbr></th><th class="ministat"><abbr title="31 IVs, positive nature">max+</abbr></th>';
 		var bst = 0;
 		for (var stat in BattleStatNames) {
 			var baseStat = pokemon.baseStats[stat];
@@ -97,8 +99,8 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			if (color > 360) color = 360;
 			buf += '<tr><th>'+StatTitles[stat]+':</th><td class="stat">'+baseStat+'</td>';
 			buf += '<td class="statbar"><span style="width:'+Math.floor(width)+'px;background:hsl('+color+',85%,45%);border-color:hsl('+color+',75%,35%)"></span></td>';
-			buf += '<td class="ministat"><small>'+(stat==='hp'?'':this.getStat(baseStat, false, 100, 0, 0, 0.9))+'</small></td><td class="ministat"><small>'+this.getStat(baseStat, stat==='hp', 100, 31, 0, 1.0)+'</small></td>';
-			buf += '<td class="ministat"><small>'+this.getStat(baseStat, stat==='hp', 100, 31, 255, 1.0)+'</small></td><td class="ministat"><small>'+(stat==='hp'?'':this.getStat(baseStat, false, 100, 31, 255, 1.1))+'</small></td></tr>';
+			buf += '<td class="ministat"><small>'+(stat==='hp'?'':this.getStat(baseStat, false, 100, 0, 0, 0.9))+'</small></td><td class="ministat"><small>'+this.getStat(baseStat, stat==='hp', 100, 0, 0, 1.0)+'</small></td>';
+			buf += '<td class="ministat"><small>'+this.getStat(baseStat, stat==='hp', 100, 31, 0, 1.0)+'</small></td><td class="ministat"><small>'+(stat==='hp'?'':this.getStat(baseStat, false, 100, 31, 0, 1.1))+'</small></td></tr>';
 		}
 		buf += '<tr><th class="bst">Total:</th><td class="bst">'+bst+'</td><td></td><td class="ministat" colspan="4">at level <input type="text" class="textbox" name="level" placeholder="100" size="5" /></td>';
 
@@ -106,14 +108,14 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 
 		buf += '<dt>Evolution:</dt> <dd>';
 		var template = pokemon;
-		while (template.prevo) template = Dex.species.get(template.prevo);
+		while (template.prevo) template = Dex.mod('gen3emeraldkaizo').species.get(template.prevo);
 		if (template.evos) {
 			buf += '<table class="evos"><tr><td>';
 			var evos = [template];
 			while (evos) {
 				if (evos[0] === 'dustox') evos = ['beautifly','dustox'];
 				for (var i=0; i<evos.length; i++) {
-					template = Dex.species.get(evos[i]);
+					template = Dex.mod('gen3emeraldkaizo').species.get(evos[i]);
 					if (i <= 0) {
 						if (!evos[0].exists) {
 							if (evos[1] === 'dustox') {
@@ -205,10 +207,32 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			buf += '<div style="clear:left"></div>';
 		}
 
+		buf += '<dl class="colentry"><dt>Catch rate:</dt><dd>';
+		buf += pokemon.catchRate;
+		buf += '</dd></dl>';
+		if (pokemon.heldItems) {
+			buf += '<dl class="colentry"><dt>Held Items:</dt>';
+			for (var i in pokemon.heldItems) {
+				var heldItem = pokemon.heldItems[i];
+				var itemid = heldItem.substr(3);
+				var chance = parseInt(heldItem.substr(0, 3));
+				var item = Dex.items.get(itemid)
+				buf += '<dd>';
+				buf += '<a href="/items/'+itemid+'" data-target="push">';
+				buf += '<span class="itemicon" style="margin-top:-3px;margin-right:5px;'+Dex.getItemIcon(item)+'"></span>';
+				buf += item.name;
+				buf += '</a>';
+				buf += ` (${chance}%)`
+				buf += '</dd>';
+			}
+			buf += '</dl>';
+		}
+		buf += '<div style="clear:left"></div>';
+
 		// past gens
 		var pastGenChanges = false;
-		for (var genNum = Dex.gen - 1; genNum >= pokemon.gen; genNum--) {
-			var nextGenSpecies = Dex.forGen(genNum + 1).species.get(id);
+		for (var genNum = Dex.gen; genNum >= pokemon.gen; genNum--) {
+			var nextGenSpecies = genNum < 3 ? Dex.forGen(genNum + 1).species.get(id) : Dex.mod('gen3emeraldkaizo').species.get(id);
 			var curGenSpecies = Dex.forGen(genNum).species.get(id);
 			var changes = '';
 
@@ -222,6 +246,12 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			var curGenAbility = curGenSpecies.abilities['0'];
 			if (curGenAbility !== nextGenAbility && curGenAbility !== 'No Ability') {
 				changes += 'Ability: ' + curGenAbility + ' <i class="fa fa-long-arrow-right"></i> ' + nextGenAbility + '<br />';
+			}
+
+			var nextGenCatchRate = nextGenSpecies.catchRate;
+			var curGenCatchRate = curGenSpecies.catchRate;
+			if (curGenCatchRate !== nextGenCatchRate) {
+				changes += 'Catch Rate: ' + curGenCatchRate + ' <i class="fa fa-long-arrow-right"></i> ' + nextGenCatchRate + '<br />';
 			}
 
 			for (var i in BattleStatNames) {
@@ -242,7 +272,7 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 
 			if (changes) {
 				if (!pastGenChanges) buf += '<h3>Past gens</h3><dl>';
-				buf += '<dt>Gen ' + genNum + ' <i class="fa fa-arrow-right"></i> ' + (genNum + 1) + ':</dt>';
+				buf += '<dt>Gen ' + genNum + ' <i class="fa fa-arrow-right"></i> ' + ((genNum < 3) ? genNum + 1 : 'EK') + ':</dt>';
 				buf += '<dd>' + changes + '</dd>';
 				pastGenChanges = true;
 			}
@@ -251,9 +281,9 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 
 		// learnset
 		if (window.BattleLearnsets && BattleLearnsets[id] && BattleLearnsets[id].eventData) {
-			buf += '<ul class="tabbar"><li><button class="button nav-first cur" value="move">Moves</button></li><li><button class="button" value="details">Flavor</button></li><li><button class="button nav-last" value="events">Events</button></li></ul>';
+			buf += '<ul class="tabbar"><li><button class="button nav-first cur" value="move">Moves</button></li><li><button class="button" value="details">Flavor</button></li><li><button class="button" value="events">Events</button></li><li><button class="button nav-last" value="locations">Locations</button></li></ul>';
 		} else {
-			buf += '<ul class="tabbar"><li><button class="button nav-first cur" value="move">Moves</button></li><li><button class="button nav-last" value="details">Flavor</button></li></ul>';
+			buf += '<ul class="tabbar"><li><button class="button nav-first cur" value="move">Moves</button></li><li><button class="button" value="details">Flavor</button></li><li><button class="button nav-last" value="locations">Locations</button></li></ul>';
 		}
 		buf += '<ul class="utilichart nokbd">';
 		buf += '<li class="resultheader"><h3>Level-up</h3></li>';
@@ -283,9 +313,9 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 		}
 		moves.sort();
 		for (var i=0, len=moves.length; i<len; i++) {
-			var move = BattleMovedex[moves[i].substr(5)];
+			var move = Dex.mod('gen3emeraldkaizo').moves.get(moves[i].substr(5));
 			if (move) {
-				var desc = moves[i].substr(1,3) === '001' || moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(parseInt(moves[i].substr(1,3),10)||'?');
+				var desc = /*moves[i].substr(1,3) === '001' || */moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(parseInt(moves[i].substr(1,3),10)||'?');
 				buf += BattleSearch.renderTaggedMoveRow(move, desc);
 			}
 		}
@@ -306,7 +336,7 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 	updateLevel: function(e) {
 		var val = this.$('input[name=level]').val();
 		var level = val === '' ? 100 : parseInt(val, 10);
-		var lowIV = 31, highIV = 31;
+		var lowIV = 0, highIV = 31;
 		var lowEV = 0, highEV = 255;
 		if (val.slice(-1) === ':') {
 			lowIV = 0;
@@ -318,10 +348,10 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 		for (var stat in BattleStatNames) {
 			var baseStat = pokemon.baseStats[stat];
 
-			$entries.eq(4 * i + 0).text(stat==='hp'?'':this.getStat(baseStat, false, level, 0, 0, 0.9));
+			$entries.eq(4 * i + 0).text(stat==='hp'?'':this.getStat(baseStat, false, level, lowIV, lowEV, 0.9));
 			$entries.eq(4 * i + 1).text(this.getStat(baseStat, stat==='hp', level, lowIV, lowEV, 1.0));
-			$entries.eq(4 * i + 2).text(this.getStat(baseStat, stat==='hp', level, highIV, highEV, 1.0));
-			$entries.eq(4 * i + 3).text(stat==='hp'?'':this.getStat(baseStat, false, level, highIV, highEV, 1.1));
+			$entries.eq(4 * i + 2).text(this.getStat(baseStat, stat==='hp', level, highIV, lowEV, 1.0));
+			$entries.eq(4 * i + 3).text(stat==='hp'?'':this.getStat(baseStat, false, level, highIV, lowEV, 1.1));
 			i++;
 		}
 	},
@@ -358,6 +388,9 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			break;
 		case 'events':
 			this.renderEvents();
+			break;
+		case 'locations':
+			this.renderLocations();
 			break;
 		}
 	},
@@ -472,7 +505,7 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 		moves.sort();
 		var last = '', lastChanged = false;
 		for (var i=0, len=moves.length; i<len; i++) {
-			var move = BattleMovedex[moves[i].substr(5)];
+			var move = Dex.mod('gen3emeraldkaizo').moves.get(moves[i].substr(5));
 			if (!move) {
 				buf += '<li><pre>error: "'+moves[i]+'"</pre></li>';
 			} else {
@@ -483,19 +516,19 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 				switch (last) {
 				case 'a': // level-up move
 					if (lastChanged) buf += '<li class="resultheader"><h3>Level-up</h3></li>';
-					desc = moves[i].substr(1,3) === '001' || moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
+					desc = /*moves[i].substr(1,3) === '001' || */moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
 					break;
 				case 'b': // prevo1 level-up move
 					if (lastChanged) buf += '<li class="resultheader"><h3>Level-up from '+BattlePokedex[prevo1].name+'</h3></li>';
-					desc = moves[i].substr(1,3) === '001' || moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
+					desc = /*moves[i].substr(1,3) === '001' || */moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
 					break;
 				case 'c': // prevo2 level-up move
 					if (lastChanged) buf += '<li class="resultheader"><h3>Level-up from '+BattlePokedex[prevo2].name+'</h3></li>';
-					desc = moves[i].substr(1,3) === '001' || moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
+					desc = /*moves[i].substr(1,3) === '001' || */moves[i].substr(1,3) === '000' ? '&ndash;' : '<small>L</small>'+(Number(moves[i].substr(1,3))||'?');
 					break;
 				case 'd': // tm/hm
 					if (lastChanged) buf += '<li class="resultheader"><h3>TM/HM</h3></li>';
-					desc = '<span class="itemicon" style="margin-top:-3px;'+Dex.getItemIcon({spritenum:508})+'"></span>';
+					desc = '<span class="itemicon" style="margin-top:-3px;background:transparent url(//play.pokemonshowdown.com/sprites/itemicons/tm-normal.png);opacity:.7"></span>';
 					break;
 				case 'e': // tutor
 					if (lastChanged) buf += '<li class="resultheader"><h3>Tutor</h3></li>';
@@ -657,6 +690,143 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 			buf += '</small></dd></dl></li>';
 		}
 
+		this.$('.utilichart').html(buf);
+	},
+	renderLocations: function() {
+		var pokemon = Dex.species.get(this.id);
+		var locations = [];
+		for (var locationid in BattleLocationDex) {
+			var location = BattleLocationDex[locationid];
+			for (var i in location.encounters) {
+				var encounter = location.encounters[i];
+				var species = encounter.substr(10);
+				if (species === this.id) locations.push(locationid + ' ' + encounter);
+			}
+		}
+
+		// locations
+		var buf = '';
+		/*var shownLocations = {};
+		var prevo1, prevo2;
+		if (pokemon.prevo) {
+			prevo1 = toID(pokemon.prevo);
+			var prevoLearnset = BattleLearnsets[prevo1].learnset;
+			for (var moveid in prevoLearnset) {
+				var sources = prevoLearnset[moveid];
+				if (typeof sources === 'string') sources = [sources];
+				for (var i=0, len=sources.length; i<len; i++) {
+					var source = sources[i];
+					if (source.substr(0,2) === ''+mostRecentGen+'L') {
+						if (shownMoves[moveid]&2) continue;
+						moves.push('b'+source.substr(2).padStart(3,'0')+' '+moveid);
+						shownMoves[moveid] = (shownMoves[moveid]|2);
+					} else if (source === ''+mostRecentGen+'E') {
+						if (shownMoves[moveid]&4) continue;
+						moves.push('g000 '+moveid);
+						shownMoves[moveid] = (shownMoves[moveid]|4);
+					} else if (source.charAt(1) === 'S') {
+						if (shownMoves[moveid]&8) continue;
+						moves.push('i000 '+moveid);
+						shownMoves[moveid] = (shownMoves[moveid]|8);
+					}
+				}
+			}
+
+			if (BattlePokedex[prevo1].prevo) {
+				prevo2 = toID(BattlePokedex[prevo1].prevo);
+				prevoLearnset = BattleLearnsets[prevo2].learnset;
+				for (var moveid in prevoLearnset) {
+					var sources = prevoLearnset[moveid];
+					if (typeof sources === 'string') sources = [sources];
+					for (var i=0, len=sources.length; i<len; i++) {
+						var source = sources[i];
+						if (source.substr(0,2) === mostRecentGen+'L') {
+							if (shownMoves[moveid]&2) continue;
+							moves.push('b'+source.substr(2).padStart(3,'0')+' '+moveid);
+							shownMoves[moveid] = (shownMoves[moveid]|2);
+						} else if (source === mostRecentGen+'E') {
+							if (shownMoves[moveid]&4) continue;
+							moves.push('h000 '+moveid);
+							shownMoves[moveid] = (shownMoves[moveid]|4);
+						} else if (source.charAt(1) === 'S') {
+							if (shownMoves[moveid]&8) continue;
+							moves.push('i000 '+moveid);
+							shownMoves[moveid] = (shownMoves[moveid]|8);
+						}
+					}
+				}
+			}
+		}
+		for (var moveid in learnset) {
+			if (moveid in shownMoves) continue;
+			moves.push('j000 '+moveid);
+			shownMoves[moveid] = (shownMoves[moveid]|1);
+		}
+		moves.sort();*/
+
+		// sorting
+		locations.sort(function (x, y) {
+			var xp = x.split(' ')[1].substr(0, 1);
+			var yp = y.split(' ')[1].substr(0, 1);
+  			return xp == yp ? 0 : xp < yp ? 	-1 : 1;
+		});
+
+
+		var last = '', lastChanged = false;
+		for (var i=0, len=locations.length; i<len; i++) {
+			var locationid = locations[i].split(' ')[0];
+			var encounter = locations[i].split(' ')[1];
+			var chance = parseInt(encounter.substr(1, 3))
+			var encounterType = '';
+			switch (encounter.substr(0, 1)) {
+				case "A":
+					encounterType = "Grass";
+					break;
+				case "B":
+					encounterType = "Cave";
+					break;
+				case "C":
+					encounterType = "Old Rod";
+					break;
+				case "D":
+					encounterType = "Good Rod";
+					break;
+				case "E":
+					encounterType = "Super Rod";
+					break;
+				case "F":
+					encounterType = "Surfing";
+					break;
+				case "G":
+					encounterType = "Diving";
+					break;
+				case "H":
+					encounterType = "Rock Smash";
+					break;
+				case "I":
+					encounterType = "Gift";
+					break;
+				case "J":
+					encounterType = "Egg";
+					break;
+				case "K":
+					encounterType = "Fossil";
+					break;
+				case "L":
+					encounterType = "Special";
+					break;
+			}
+			if (!BattleLocationDex[locationid]) {
+				buf += '<li><pre>error: "'+locations[i]+'"</pre></li>';
+			} else {
+				if ((lastChanged = (encounterType !== last))) {
+					last = encounterType;
+				}
+				if (lastChanged) buf += '<li class="resultheader"><h3>' + encounterType + '</h3></li>';
+				var desc = ["A", "B", "C", "D", "E", "F", "G", "H"].includes(encounter.substr(0, 1)) ? chance + '%' : '-';
+				buf += BattleSearch.renderTaggedLocationRow(locations[i], desc, encounterType);
+			}
+		}
 		this.$('.utilichart').html(buf);
 	},
 	getStat: function(baseStat, isHP, level, iv, ev, natureMult) {

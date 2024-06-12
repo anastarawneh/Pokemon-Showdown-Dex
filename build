@@ -13,7 +13,7 @@ const Config = require('./config/config');
 process.chdir(__dirname);
 
 if (process.argv[2] === 'full') {
-	child_process.execSync('../play.pokemonshowdown.com/build-tools/build-indexes', {stdio: 'inherit'});
+	child_process.execSync('node ../client/build-tools/build-indexes', {stdio: 'inherit'});
 }
 
 function updateFiles() {
@@ -52,3 +52,21 @@ function replaceRoutes(url) {
 updateFiles();
 
 child_process.execSync('node ./cms/build', {stdio: 'inherit'});
+
+// process.stdout.write("Preparing ek folder...");
+// fs.cpSync("articles", "ek/articles", { recursive: true });
+// fs.cpSync("config", "ek/config", { recursive: true });
+// fs.cpSync("images", "ek/images", { recursive: true });
+// fs.cpSync("js", "ek/js", { recursive: true });
+// fs.cpSync("theme", "ek/theme", { recursive: true });
+// fs.cpSync("favicon.ico", "ek/favicon.ico");
+// fs.cpSync("index.php", "ek/index.php");
+// 
+// fs.cpSync("sprites", "ek/sprites", { recursive: true });
+// 
+// fs.cpSync("../client/play.pokemonshowdown.com/style", "ek/play.pokemonshowdown.com/style", { recursive: true });
+// fs.cpSync("../client/play.pokemonshowdown.com/config", "ek/play.pokemonshowdown.com/config", { recursive: true });
+// fs.cpSync("../client/play.pokemonshowdown.com/data", "ek/play.pokemonshowdown.com/data", { recursive: true });
+// fs.cpSync("../client/play.pokemonshowdown.com/js", "ek/play.pokemonshowdown.com/js", { recursive: true });
+
+// console.log("DONE!")

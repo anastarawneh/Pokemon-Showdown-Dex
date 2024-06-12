@@ -103,3 +103,13 @@ a.subtle:hover {
 	background: #F1F4F9;
 	color: #224466;
 }
+
+.import-team-text {
+    min-width: 27em;
+    min-height: 10em;
+    resize: vertical;
+}
+
+.select2-results__option {
+	font-size: 9pt;
+}

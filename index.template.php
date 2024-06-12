@@ -6,11 +6,11 @@
 	<title>Pok&eacute;dex - Pok&eacute;mon Showdown</title>
 
 	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=IE8" />
-	<link rel="stylesheet" href="//play.pokemonshowdown.com/style/font-awesome.css" />
+	<link rel="stylesheet" href="/client/play.pokemonshowdown.com/style/font-awesome.css" />
 	<link rel="stylesheet" href="/theme/panels.css?" />
 	<link rel="stylesheet" href="/theme/main.css?" />
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<link rel="stylesheet" href="//play.pokemonshowdown.com/style/utilichart.css?" />
+	<link rel="stylesheet" href="/client/play.pokemonshowdown.com/style/utilichart.css?" />
 	<link rel="stylesheet" href="/theme/pokedex.css?" />
 
 	<!-- Workarounds for IE bugs to display trees correctly. -->
@@ -22,14 +22,8 @@
 	<div class="pfx-topbar">
 		<div class="header">
 			<ul class="nav">
-				<li><a class="button nav-first" href="//pokemonshowdown.com/"><img src="/images/pokemonshowdownbeta.png" alt="Pok&eacute;mon Showdown! (beta)" /> Home</a></li>
-				<li><a class="button cur" href="/">Pok&eacute;dex</a></li>
-				<li><a class="button" href="//replay.pokemonshowdown.com/">Replays</a></li>
-				<li><a class="button" href="//pokemonshowdown.com/ladder/">Ladder</a></li>
-				<li><a class="button nav-last" href="//pokemonshowdown.com/forums/">Forum</a></li>
-			</ul>
-			<ul class="nav nav-play">
-				<li><a class="button greenbutton nav-first nav-last" href="http://play.pokemonshowdown.com/">Play</a></li>
+				<li><a class="button nav-first" href="https://calc.anastarawneh.com/hacks?game=1&gen=3">Calculator</a></li>
+				<li><a class="button cur nav-last" href="/">Pok&eacute;dex</a></li>
 			</ul>
 			<div style="clear:both"></div>
 		</div>
@@ -38,9 +32,9 @@
 <?php if ($_SERVER['REQUEST_URI'][0] === '/' && !ctype_alnum($_SERVER['REQUEST_URI'][1])) { ?>
 		<form class="pokedex">
 			<h1>
-				<a href="/">Pok&eacute;dex</a>
+				<a href="/">Emerald Kaizo Pok&eacute;dex</a>
 			</h1>
-			<ul class="tabbar centered" style="margin-bottom: 18px"><li><button class="button nav-first cur" value="">Search</button></li><li><button class="button" value="pokemon/">Pokémon</button></li><li><button class="button nav-last" value="moves/">Moves</button></li></ul>
+			<ul class="tabbar centered" style="margin-bottom: 18px"><li><button class="button nav-first cur" value="">Search</button></li><li><button class="button" value="pokemon/">Pokémon</button></li><li><button class="button" value="moves/">Moves</button></li><li><button class="button nav-last" value="locations/">Locations</button></li></ul>
 			<div class="searchboxwrapper">
 				<input class="textbox searchbox" type="search" name="q" value="<?php echo @$_REQUEST['q'] ?>" autocomplete="off" autofocus placeholder="Search Pok&eacute;mon, moves, abilities, items, types, or more" />
 			</div>
@@ -67,23 +61,29 @@
 	<script src="/js/lib/backbone-min.js"></script>
 	<script src="/js/panels.js?"></script>
 
-	<script src="//play.pokemonshowdown.com/config/config.js?"></script>
-	<script src="//play.pokemonshowdown.com/js/battledata.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/search-index.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/pokedex.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/teambuilder-tables.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/learnsets.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/moves.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/abilities.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/items.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/formats-data.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/typechart.js?"></script>
-	<script src="//play.pokemonshowdown.com/data/aliases.js?"></script>
-	<script src="//play.pokemonshowdown.com/js/battle-dex-search.js?"></script>
-	<script src="//play.pokemonshowdown.com/js/search.js?"></script>
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+	<script src="/client/config/config.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/js/battledata.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/search-index.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/pokedex.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/teambuilder-tables.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/learnsets.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/moves.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/abilities.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/items.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/formats-data.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/typechart.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/data/aliases.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/js/battle-dex-search.js?"></script>
+	<script src="/client/play.pokemonshowdown.com/js/search.js?"></script>
 	<script src="/js/pokedex.js?"></script>
 	<script src="/js/pokedex-pokemon.js?"></script>
 	<script src="/js/pokedex-moves.js?"></script>
+	<script src="/js/pokedex-locations.js?"></script>
+	<script src="/js/pokedex-encounters.js?"></script>
+	<script src="/js/locations.js?"></script>
 	<script src="/js/pokedex-search.js?"></script>
 	<script src="/js/router.js?"></script>
 

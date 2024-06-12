@@ -21,15 +21,18 @@ var PokedexSearchPanel = Panels.Panel.extend({
 		var questionIndex = fragment.indexOf('?');
 		if (fragment === 'moves') fragment = 'moves/';
 		if (fragment === 'pokemon') fragment = 'pokemon/';
+		if (fragment === 'locations') fragment = 'locations/';
 		if (questionIndex >= 0) fragment = fragment.slice(0, questionIndex);
 		var buf = '<div class="pfx-body"><form class="pokedex">';
-		buf += '<h1><a href="/" data-target="replace">Pok&eacute;dex</a></h1>';
+		buf += '<h1><a href="/" data-target="replace">Emerald Kaizo Pok&eacute;dex</a></h1>';
 		buf += '<ul class="tabbar centered" style="margin-bottom: 18px"><li><button class="button nav-first' + (fragment === '' ? ' cur' : '') + '" value="">Search</button></li>';
 		buf += '<li><button class="button' + (fragment === 'pokemon/' ? ' cur' : '') + '" value="pokemon/">Pok&eacute;mon</button></li>';
-		buf += '<li><button class="button nav-last' + (fragment === 'moves/' ? ' cur' : '') + '" value="moves/">Moves</button></li></ul>';
+		buf += '<li><button class="button' + (fragment === 'moves/' ? ' cur' : '') + '" value="moves/">Moves</button></li>';
+		buf += '<li><button class="button nav-last' + (fragment === 'locations/' ? ' cur' : '') + '" value="locations/">Locations</button></li></ul>';
 		buf += '<div class="searchboxwrapper"><input class="textbox searchbox" type="search" name="q" value="' + Dex.escapeHTML(this.$('.searchbox').val() || '') + '" autocomplete="off" autofocus placeholder="Search Pok&eacute;mon, moves, abilities, items, types, or more" /></div>';
 		if (fragment === '') {
 			buf += '<p class="buttonbar"><button class="button"><strong>Pok&eacute;dex Search</strong></button> <button name="lucky" class="button">I\'m Feeling Lucky</button></p>';
+			buf += '<p class="buttonbar"><a href="encounters/" data-target="push"><button class="button">Encounter List</button></a></p>';
 		}
 		buf += '</form>';
 		buf += '<div class="results"></div></div>';
@@ -50,6 +53,10 @@ var PokedexSearchPanel = Panels.Panel.extend({
 			} else if (fragment === 'moves/') {
 				search.setType('move');
 				$searchbox.attr('placeholder', 'Search moves OR filter by type, category, pokemon');
+				this.$('.buttonbar').remove();
+			} else if (fragment === 'locations/') {
+				search.setType('location');
+				$searchbox.attr('placeholder', 'Search locations');
 				this.$('.buttonbar').remove();
 			}
 			this.search.externalFilter = true;
@@ -75,6 +82,8 @@ var PokedexSearchPanel = Panels.Panel.extend({
 			buf = '<button class="filter noclear" value=":">Pokémon</button> ';
 		} else if (this.search.qType === 'move') {
 			buf = '<button class="filter noclear" value=":">Moves</button> ';
+		} else if (this.search.qType === 'location') {
+			buf = '<button class="filter noclear" value=":">Locations</button> ';
 		} else {
 			this.$('.searchbox-filters').remove();
 			this.$searchbox.css('padding', '2px');
@@ -86,6 +95,7 @@ var PokedexSearchPanel = Panels.Panel.extend({
 				var text = filter[1];
 				if (filter[0] === 'move') text = Dex.moves.get(text).name;
 				if (filter[0] === 'pokemon') text = Dex.species.get(text).name;
+				if (filter[0] === 'location') text = Dex.moves.get(text).name; //check this
 				buf += '<button class="filter" value="' + Dex.escapeHTML(filter.join(':')) + '">' + text + ' <i class="fa fa-times-circle"></i></button> ';
 			}
 		}
@@ -118,6 +128,10 @@ var PokedexSearchPanel = Panels.Panel.extend({
 				this.app.go('moves/', this, true);
 				return;
 			}
+			if (id === 'location' || id === 'locations') {
+				this.app.go('locations/', this, true);
+				return;
+			}
 		}
 		if (lastchar === ',') {
 			if (this.search.addFilter(this.activeLink)) {
@@ -139,7 +153,7 @@ var PokedexSearchPanel = Panels.Panel.extend({
 			}
 			if (this.activeLink) {
 				var path = this.activeLink.pathname.substr(1);
-				if (path === 'moves/' || path === 'pokemon/') {
+				if (path === 'moves/' || path === 'pokemon/' || path === 'locations/') {
 					this.app.go(path, this, true);
 					return;
 				}
@@ -169,6 +183,12 @@ var PokedexSearchPanel = Panels.Panel.extend({
 				e.preventDefault();
 				e.stopPropagation();
 				this.app.go('moves/', this, true);
+				return;
+			}
+			if (id === 'location' || id === 'locations') {
+				e.preventDefault();
+				e.stopPropagation();
+				this.app.go('locations/', this, true);
 				return;
 			}
 			break;
@@ -225,6 +245,12 @@ var PokedexSearchPanel = Panels.Panel.extend({
 			e.preventDefault();
 			e.stopPropagation();
 			alert(['That\'s pretty cool.','Your mom\'s feeling lucky.','I see.','If you feel lucky for more than four hours, perhaps you should see a doctor.'][Math.floor(Math.random()*4)]);
+			return;
+		}
+		if (e.target.tagName === 'BUTTON' && e.target.name == 'encounters') {
+			e.preventDefault();
+			e.stopPropagation();
+			this.app.go(e.target.value, this, true);
 			return;
 		}
 		var scrollLoc = this.$el.scrollTop();

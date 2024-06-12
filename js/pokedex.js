@@ -22,6 +22,7 @@ var PokedexItemPanel = PokedexResultPanel.extend({
 	initialize: function(id) {
 		id = toID(id);
 		var item = Dex.items.get(id);
+		this.id = id;
 		this.shortTitle = item.name;
 
 		var buf = '<div class="pfx-body dexentry">';
@@ -49,9 +50,149 @@ var PokedexItemPanel = PokedexResultPanel.extend({
 		}
 		if (pastGenChanges) buf += '</dl>';
 
+		// distribution
+		buf += '<ul class="utilichart metricchart nokbd">';
+		buf += '</ul>';
+
 		buf += '</div>';
 
 		this.html(buf);
+
+		setTimeout(this.renderDistribution.bind(this));
+	},
+	getDistribution: function() {
+		var itemid = this.id;
+		if (this.results) return this.results;
+		var results = [];
+		for (var pokemonid in BattlePokedex) {
+			if (!BattlePokedex[pokemonid]) continue;
+			var items = Dex.mod('gen3emeraldkaizo').species.get(pokemonid).heldItems;
+			if (!items) continue;
+			for (var i in items) {
+				if (items[i].substr(3) == itemid) {
+					var chance = items[i].substr(0, 3);
+					results.push(chance+pokemonid);
+					break;
+				}
+			}
+		}
+		results.sort(function (x, y) {
+			var xp = x.substr(0, 3);
+			var yp = y.substr(0, 3);
+  			return xp == yp ? 0 : xp < yp ? -1 : 1;
+		});
+		if (results) {
+			results.splice(0, 0, 'A')
+		}
+		return this.results = results;
+	},
+	renderDistribution: function() {
+		var results = this.getDistribution();
+		this.$chart = this.$('.utilichart');
+
+		if (results.length > 1600/33) {
+			this.streamLoading = true;
+			this.$el.on('scroll', this.handleScroll.bind(this));
+
+			var panelTop = this.$el.children().offset().top;
+			var panelHeight = this.$el.outerHeight();
+			var chartTop = this.$chart.offset().top;
+			var scrollLoc = this.scrollLoc = this.$el.scrollTop();
+
+			var start = Math.floor((scrollLoc - (chartTop-panelTop)) / 33 - 35);
+			var end = Math.floor(start + 35 + panelHeight / 33 + 35);
+			if (start < 0) start = 0;
+			if (end > results.length-1) end = results.length-1;
+			this.start = start, this.end = end;
+
+			// distribution
+			var buf = '';
+			for (var i=0, len=results.length; i<len; i++) {
+				buf += '<li class="result">'+this.renderRow(i, i < start || i > end)+'</li>';
+			}
+			this.$chart.html(buf);
+		} else {
+			var buf = '';
+			for (var i=0, len=results.length; i<len; i++) {
+				buf += '<li class="result">'+this.renderRow(i)+'</li>';
+			}
+			this.$chart.html(buf);
+		}
+	},
+	renderRow: function(i, offscreen) {
+		var results = this.results;
+		var pokemonid = results[i].substr(3);
+		var chance = parseInt(results[i].substr(0, 3));
+
+		var template = pokemonid ? Dex.mod('gen3emeraldkaizo').species.get(pokemonid) : undefined;
+		if (!template) {
+			return '<h3>Held by</h3>';
+		} else if (offscreen) {
+			return ''+template.name+' '+template.abilities['0']+' '+(template.abilities['1']||'')+' '+(template.abilities['H']||'')+'';
+		} else {
+			var desc = chance + '%';
+		}
+		return BattleSearch.renderTaggedPokemonRowInner(template, desc);
+	},
+	handleScroll: function() {
+		var scrollLoc = this.$el.scrollTop();
+		if (Math.abs(scrollLoc - this.scrollLoc) > 20*33) {
+			this.renderUpdateDistribution();
+		}
+	},
+	debouncedPurgeTimer: null,
+	renderUpdateDistribution: function(fullUpdate) {
+		if (this.debouncedPurgeTimer) {
+			clearTimeout(this.debouncedPurgeTimer);
+			this.debouncedPurgeTimer = null;
+		}
+
+		var panelTop = this.$el.children().offset().top;
+		var panelHeight = this.$el.outerHeight();
+		var chartTop = this.$chart.offset().top;
+		var scrollLoc = this.scrollLoc = this.$el.scrollTop();
+
+		var results = this.results;
+
+		var rowFit = Math.floor(panelHeight / 33);
+
+		var start = Math.floor((scrollLoc - (chartTop-panelTop)) / 33 - 35);
+		var end = start + 35 + rowFit + 35;
+		if (start < 0) start = 0;
+		if (end > results.length-1) end = results.length-1;
+
+		var $rows = this.$chart.children();
+
+		if (fullUpdate || start < this.start - rowFit - 30 || end > this.end + rowFit + 30) {
+			var buf = '';
+			for (var i=0, len=results.length; i<len; i++) {
+				buf += '<li class="result">'+this.renderRow(i, (i < start || i > end))+'</li>';
+			}
+			this.$chart.html(buf);
+			this.start = start, this.end = end;
+			return;
+		}
+
+		if (start < this.start) {
+			for (var i = start; i<this.start; i++) {
+				$rows[i].innerHTML = this.renderRow(i);
+			}
+			this.start = start;
+		}
+
+		if (end > this.end) {
+			for (var i = this.end+1; i<=end; i++) {
+				$rows[i].innerHTML = this.renderRow(i);
+			}
+			this.end = end;
+		}
+
+		if (this.end - this.start > rowFit+90) {
+			var self = this;
+			this.debouncedPurgeTimer = setTimeout(function() {
+				self.renderUpdateDistribution(true);
+			}, 1000);
+		}
 	}
 });
 var PokedexAbilityPanel = PokedexResultPanel.extend({
@@ -104,7 +245,7 @@ var PokedexAbilityPanel = PokedexResultPanel.extend({
 		var ability = Dex.abilities.get(this.id);
 		var buf = '';
 		for (var pokemonid in BattlePokedex) {
-			var template = BattlePokedex[pokemonid];
+			var template = Dex.mod('gen3emeraldkaizo').species.get(pokemonid);
 			if (template.isNonstandard && !ability.isNonstandard) continue;
 			if (template.abilities['0'] === ability.name || template.abilities['1'] === ability.name || template.abilities['H'] === ability.name) {
 				buf += BattleSearch.renderPokemonRow(template);
@@ -793,7 +934,7 @@ var PokedexCategoryPanel = PokedexResultPanel.extend({
 var PokedexTierPanel = PokedexResultPanel.extend({
 	initialize: function(id) {
 		var tierTable = {
-			ag: "AG",
+			/*ag: "AG",
 			uber: "Uber",
 			ou: "OU",
 			uu: "UU",
@@ -811,6 +952,8 @@ var PokedexTierPanel = PokedexResultPanel.extend({
 			nubl: "NUBL",
 			publ: "PUBL",
 			unreleased: "Unreleased",
+			illegal: "Illegal",*/
+			legal: "Legal",
 			illegal: "Illegal",
 		};
 		var name = tierTable[id] || id;
@@ -874,6 +1017,186 @@ var PokedexArticlePanel = PokedexResultPanel.extend({
 				return '';
 			});
 			self.$('.article-content').html(html);
+		});
+	}
+});
+var PokedexEncountersPanel = PokedexResultPanel.extend({
+	initialize: function(id) {
+		id = toID(id);
+		this.shortTitle = id;
+
+		var buf = '<div class="pfx-body dexentry">';
+		buf += '<a href="/" class="pfx-backbutton" data-target="back"><i class="fa fa-chevron-left"></i> Pok&eacute;dex</a>';
+		buf += '<h1><a href="/encounters/" data-target="push" class="subtle">Encounter List</a></h1>';
+
+		buf += '<div><p>';
+		buf += '<textarea class="import-team-text"></textarea>';
+		buf += '<br><button id="import-btn">Import</button> <button id="reset-btn">Reset</button> <button id="help-btn">Help?</button> <button id="lua-btn">Lua Script</button>';
+		buf += '</p></div>';
+
+		buf += '<ul class="utilichart resultchart nokbd"></ul>';
+
+		buf += '</div>';
+
+		this.html(buf);
+
+		setTimeout(this.renderLocationList.bind(this));
+	},
+	renderLocationList: function() {
+		var encounters = JSON.parse(localStorage.encounters);
+
+		function updateEncounters() {
+			var sublocations = [];
+			for (var locationid in BattleLocationDex) {
+				if (encounters[locationid]) {
+					BattleLocationDex[locationid].taken = BattlePokedex[encounters[locationid]] ? BattlePokedex[encounters[locationid]].name : "Missed";
+					if (BattleLocationDex[locationid].sublocations) {
+						sublocations = BattleLocationDex[locationid].sublocations;
+						for (var i in BattleLocationDex[locationid].sublocations)
+							BattleLocationDex[sublocations[i]].taken = BattlePokedex[encounters[locationid]] ? BattlePokedex[encounters[locationid]].name : "Missed";
+					}
+				} else if (sublocations.includes(locationid)) {
+					continue;
+				} else if (BattleLocationDex[locationid].taken) {
+					BattleLocationDex[locationid].taken = false;
+					if (BattleLocationDex[locationid].sublocations) {
+						sublocations = BattleLocationDex[locationid].sublocations;
+						for (var i in BattleLocationDex[locationid].sublocations)
+							BattleLocationDex[sublocations[i]].taken = false;
+					}
+				}
+			}
+			localStorage.encounters = JSON.stringify(encounters);
+		}
+
+		function updateRows() {
+			var buf = '';
+			var seen = [];
+			for (var locationid in BattleLocationDex) {
+				var location = BattleLocationDex[locationid];
+				var cleanName = BattleLocationDex[locationid].name.split(' -')[0];
+				if (!seen.includes(cleanName)) {
+					buf += `<li class="result" data-locationid="${toID(cleanName)}"><a href="/locations/${locationid}" data-target="push"><span class="col locationnamecol">${cleanName}</span>`;
+					buf += '<span class="col dropdowncol">';
+					buf += '<select class="dropdown" data-locationid="' + locationid + '" style="width: 100%;">';
+					buf += '<option value="none">(None)</option>';
+					buf += `<option value="missed"${location.taken && location.taken == 'Missed' ? ' selected="selected"' : ''}>(Missed)</option>`;
+					var encounters = location.encounters;
+					var encounterList = [];
+					if (encounters) {
+						buf += '<optgroup label="Route encounters">';
+						for (var i in encounters) {
+							var encounter = encounters[i];
+							var id = encounter.substr(10);
+							if (encounterList.includes(id)) continue;
+							encounterList.push(id);
+							var pokemon = BattlePokedex[id];
+							buf += `<option value="${id}"${location.taken && toID(location.taken) == id ? ' selected="selected"' : ''}>${pokemon.name}</option>`;
+						}
+						buf += '</optgroup>';
+						buf += '<optgroup label="Other">';
+					}
+					for (var id in BattlePokedex) {
+						if (encounterList.includes(id)) continue;
+						var pokemon = BattlePokedex[id];
+						if (!pokemon.baseSpecies || pokemon.baseSpecies == pokemon.name) buf += `<option value="${id}"${location.taken && toID(location.taken) == id ? ' selected="selected"' : ''}>${pokemon.name}</option>`;
+					}
+					if (encounters) buf += '</optgroup>';
+					buf += '</select>';
+					buf += '</span>';
+					if (location.taken) {
+						buf += '<span class="col iconcol">';
+						buf += '<span style="' + Dex.getPokemonIcon(location.taken) + '"></span>';
+						buf += '</span> ';
+					}
+					buf += '</a></li>';
+					seen.push(`${cleanName}`);
+				}
+			}
+			this.$('.resultchart').html(buf);
+			$('.dropdown').select2();
+			setInputEvents();
+		}
+		updateRows();
+
+		function setInputEvents() {
+			$('.select2-selection').click(function() {
+				return false;
+			});
+			$(".dropdown").change(function() {
+				var id = $(this).val();
+				if (id == 'none') {
+					delete encounters[$(this).attr("data-locationid")];
+					$(this).parent().siblings(".iconcol").remove();
+					updateEncounters();
+				} else {
+					encounters[$(this).attr("data-locationid")] = toID(id);
+					$(this).parent().siblings(".iconcol").remove();
+					var html = '<span class="col iconcol">';
+					html += '<span style="' + Dex.getPokemonIcon(id) + '"></span>';
+					html += '</span> ';
+					$(this).parent().after(html);
+					updateEncounters();
+				}
+			});
+		}
+		
+		this.$('#import-btn').click(function() {
+			raw_sets = $('.import-team-text')[0].value;
+			$('.import-team-text')[0].value = '';
+			var rows = raw_sets.split("\n");
+			var rawPokemon = [];
+			var currentPokemon = [];
+			for (var i = 0; i < rows.length; i++) {
+				if (rows[i]) currentPokemon.push(rows[i]);
+				else if (currentPokemon.length) {
+					rawPokemon.push(currentPokemon);
+					currentPokemon = [];
+				}
+			}
+			
+			var addedpokes = 0;
+			var sets = {};
+			for (var i = 0; i < rawPokemon.length; i++) {
+				var pokemon = rawPokemon[i];
+				var species = pokemon[0].includes('(') ? pokemon[0].split('(')[1].split(')')[0].trim() : pokemon[0].split('@')[0].trim();
+				var location = '';
+				for (var j = 0; j < pokemon.length; j++) {
+					var row = pokemon[j];
+					if (row.includes('Location: ')) location = row.split('Location: ')[1];
+				}
+				var speciesid = toID(species);
+				var locationid = toID(location);
+				if (!Object.keys(BattleLocationDex).includes(locationid) || !Object.keys(BattlePokedex).includes(speciesid)) {
+					alert("No sets imported, please check your syntax and try again");
+					return;
+				}
+				sets[locationid] = speciesid;
+				addedpokes++;
+			}
+			if (sets && addedpokes) {
+				jQuery.extend(encounters, sets);
+				localStorage.encounters = JSON.stringify(encounters);
+				updateEncounters();
+				updateRows();
+			} else {
+				alert("No sets imported, please check your syntax and try again");
+			}
+		});
+
+		this.$('#reset-btn').click(function() {
+			encounters = {};
+			updateEncounters();
+			updateRows();
+		});
+
+		this.$('#help-btn').click(function() {
+			alert("This page tracks your encounters and marks dupes across the dex. Pastes imported here are separate from ones imported into the calculator.\n\n" +
+				  "You will need a modified Lua script to import the correct data, you can download it using the \"Lua Script\" button.");
+		});
+
+		this.$('#lua-btn').click(function() {
+			window.open("https://gist.github.com/anastarawneh/aa5f406ba474325b7c49e869a891c5b4#file-ek-modified-lua");
 		});
 	}
 });
