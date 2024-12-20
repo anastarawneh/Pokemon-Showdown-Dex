@@ -37,6 +37,7 @@ var Pokedex = Panels.App.extend({
 					if (BattleLocationDex[locationid].sublocations) {
 						var sublocations = BattleLocationDex[locationid].sublocations;
 						for (var i in BattleLocationDex[locationid].sublocations)
+							sublocations[i]; // I have no idea why, but everything breaks if this isn't referenced.
 							BattleLocationDex[sublocations[i]].taken = BattlePokedex[encounters[locationid]] ? BattlePokedex[encounters[locationid]].name : "Missed";
 					}
 				}

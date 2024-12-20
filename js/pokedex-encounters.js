@@ -41,13 +41,12 @@ var PokedexEncountersPanel = PokedexResultPanel.extend({
 				var location = '';
 				for (var j = 0; j < pokemon.length; j++) {
 					var row = pokemon[j];
-					if (row.includes('Location: ')) location = row.split('Location: ')[1];
+					if (row.includes('Location: ')) location = row.split('Location: ')[1].split(" (")[0];
 				}
 				var speciesid = toID(species);
 				var locationid = toID(location);
 				if (!Object.keys(BattleLocationDex).includes(locationid) || !Object.keys(BattlePokedex).includes(speciesid)) {
-					alert("No sets imported, please check your syntax and try again");
-					return;
+					continue;
 				}
 				BattleLocationDex[locationid].taken = BattlePokedex[speciesid] ? BattlePokedex[speciesid].name : "Missed";
 					if (BattleLocationDex[locationid].sublocations) {
@@ -151,6 +150,7 @@ var PokedexEncountersPanel = PokedexResultPanel.extend({
 					if (encounters.includes(pokemonid)) continue;
 					var pokemon = Dex.mod('gen3emeraldkaizo').species.get(pokemonid);
 					buf += `<option value="${pokemonid}"${location.taken && toID(location.taken) == pokemonid ? ' selected="selected"' : ''}>${pokemon.name}</option>`;
+					encounters.push(pokemonid);
 				}
 				buf += '</optgroup>';
 				buf += '<optgroup label="Other">';
