@@ -1953,20 +1953,20 @@ exports.BattleLocationDex = {
             "B100070070wobbuffet",
         ]
     },
-    caveoforigins: {
-        name: "Cave of Origins",
+    caveoforigin: {
+        name: "Cave of Origin",
         hide: true,
         sublocations: [
-            "caveoforigins1froom1",
-            "caveoforigins1froom2",
-            "caveoforiginsb1f",
-            "caveoforiginsb2f",
-            "caveoforiginsb3f"
+            "caveoforigin1froom1",
+            "caveoforigin1froom2",
+            "caveoforiginb1f",
+            "caveoforiginb2f",
+            "caveoforiginb3f"
         ]
     },
-    caveoforigins1froom1: {
-        name: "Cave of Origins - 1F Room 1",
-        mainlocation: "caveoforigins",
+    caveoforigin1froom1: {
+        name: "Cave of Origin - 1F Room 1",
+        mainlocation: "caveoforigin",
         encounters: [
             "B020070070misdreavus",
             "B020070070xatu",
@@ -1982,9 +1982,9 @@ exports.BattleLocationDex = {
             "B001070070gengar",
         ]
     },
-    caveoforigins1froom2: {
-        name: "Cave of Origins - 1F Room 2",
-        mainlocation: "caveoforigins",
+    caveoforigin1froom2: {
+        name: "Cave of Origin - 1F Room 2",
+        mainlocation: "caveoforigin",
         encounters: [
             "B020070070wobbuffet",
             "B020070070crobat",
@@ -2000,9 +2000,9 @@ exports.BattleLocationDex = {
             "B001061061dusclops",
         ]
     },
-    caveoforiginsb1f: {
-        name: "Cave of Origins - B1F",
-        mainlocation: "caveoforigins",
+    caveoforiginb1f: {
+        name: "Cave of Origin - B1F",
+        mainlocation: "caveoforigin",
         encounters: [
             "B020070070wobbuffet",
             "B020070070crobat",
@@ -2018,17 +2018,17 @@ exports.BattleLocationDex = {
             "B001060060dusclops",
         ]
     },
-    caveoforiginsb2f: {
-        name: "Cave of Origins - B2F",
-        mainlocation: "caveoforigins",
+    caveoforiginb2f: {
+        name: "Cave of Origin - B2F",
+        mainlocation: "caveoforigin",
         encounters: [
             "B098005066duskull",
             "B002060066dusclops",
         ]
     },
-    caveoforiginsb3f: {
-        name: "Cave of Origins - B3F",
-        mainlocation: "caveoforigins",
+    caveoforiginb3f: {
+        name: "Cave of Origin - B3F",
+        mainlocation: "caveoforigin",
         encounters: [
             "B020071071wobbuffet",
             "B020070070crobat",
