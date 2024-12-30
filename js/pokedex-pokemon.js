@@ -847,7 +847,6 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 						if (["roar", "whirlwind"].includes(moveID)) warnings.push("Roar");
 						if (["selfdestruct", "explosion", "memento"].includes(moveID)) warnings.push("Self-KO");
 						if (move.recoil) warnings.push("Recoil");
-						console.log(move)
 					}
 					
 					warnings = [...new Set(warnings)];
