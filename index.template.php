@@ -84,6 +84,7 @@
 	<script src="/js/pokedex-locations.js?"></script>
 	<script src="/js/pokedex-encounters.js?"></script>
 	<script src="/js/locations.js?"></script>
+	<script src="/js/levelup-learnsets.js?"></script>
 	<script src="/js/pokedex-search.js?"></script>
 	<script src="/js/router.js?"></script>
 

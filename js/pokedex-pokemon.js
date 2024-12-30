@@ -771,12 +771,16 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
   			return xp == yp ? 0 : xp < yp ? 	-1 : 1;
 		});
 
+		var learnset = LevelupLearnsets[pokemon.id].slice().reverse();
 
 		var last = '', lastChanged = false;
 		for (var i=0, len=locations.length; i<len; i++) {
 			var locationid = locations[i].split(' ')[0];
 			var encounter = locations[i].split(' ')[1];
-			var chance = parseInt(encounter.substr(1, 3))
+			var chance = parseInt(encounter.substr(1, 3));
+			var minLevel = parseInt(encounter.substr(4, 3));
+			var maxLevel = parseInt(encounter.substr(7, 3));
+			var level = minLevel == maxLevel ? `Lv. ${maxLevel}` : `Lv. ${minLevel}-${maxLevel}`;
 			var encounterType = '';
 			switch (encounter.substr(0, 1)) {
 				case "A":
@@ -824,7 +828,31 @@ var PokedexPokemonPanel = PokedexResultPanel.extend({
 				}
 				if (lastChanged) buf += '<li class="resultheader"><h3>' + encounterType + '</h3></li>';
 				var desc = ["A", "B", "C", "D", "E", "F", "G", "H"].includes(encounter.substr(0, 1)) ? chance + '%' : '-';
-				buf += BattleSearch.renderTaggedLocationRow(locations[i], desc, encounterType);
+				var warnings = [];
+				if (["A", "B", "C", "D", "E", "F", "G", "H"].includes(encounter.substr(0, 1)) && !locationid.includes("safarizone")) {
+					var levelMoveset = [];
+					for (var j in learnset) {
+						if (levelMoveset.length == 4) break;
+						var move = learnset[j].move;
+						var moveLevel = learnset[j].level;
+						if (moveLevel <= maxLevel) levelMoveset.push(move);
+					}
+				
+					if (Object.values(Dex.mod("gen3emeraldkaizo").species.get(pokemon.id).abilities).includes("Arena Trap") || Object.values(Dex.mod("gen3emeraldkaizo").species.get(pokemon.id).abilities).includes("Shadow Tag")) warnings.push("Trapping");
+					
+					for (var j in levelMoveset) {
+						var moveID = levelMoveset[j];
+						var move = Dex.mod('gen3emeraldkaizo').moves.get(levelMoveset[j]);
+						if (moveID == "teleport") warnings.push("Teleport");
+						if (["roar", "whirlwind"].includes(moveID)) warnings.push("Roar");
+						if (["selfdestruct", "explosion", "memento"].includes(moveID)) warnings.push("Self-KO");
+						if (move.recoil) warnings.push("Recoil");
+						console.log(move)
+					}
+					
+					warnings = [...new Set(warnings)];
+				}
+				buf += BattleSearch.renderTaggedLocationRow(locations[i], desc, encounterType, level, warnings);
 			}
 		}
 		this.$('.utilichart').html(buf);

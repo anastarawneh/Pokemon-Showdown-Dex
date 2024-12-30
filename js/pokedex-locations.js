@@ -248,7 +248,34 @@ var PokedexLocationPanel = PokedexResultPanel.extend({
 				}
 				if (marked) break;
 			}
-			return BattleSearch.renderTaggedLocationPokemonRowInner(template, desc, minLevel, maxLevel);
+
+			var learnset = LevelupLearnsets[id].slice().reverse();
+
+			var warnings = [];
+			if (["A", "B", "C", "D", "E", "F", "G", "H"].includes(results[i].charAt(0)) && !this.id.includes("safarizone")) {
+				var levelMoveset = [];
+				for (var i in learnset) {
+					if (levelMoveset.length == 4) break;
+					var move = learnset[i].move;
+					var moveLevel = learnset[i].level;
+					if (moveLevel <= maxLevel) levelMoveset.push(move);
+				}
+				
+				if (Object.values(Dex.mod("gen3emeraldkaizo").species.get(id).abilities).includes("Arena Trap") || Object.values(Dex.mod("gen3emeraldkaizo").species.get(id).abilities).includes("Shadow Tag")) warnings.push("Trapping");
+				
+				for (var i in levelMoveset) {
+					var moveID = levelMoveset[i];
+					var move = Dex.mod('gen3emeraldkaizo').moves.get(levelMoveset[i]);
+					if (moveID == "teleport") warnings.push("Teleport");
+					if (["roar", "whirlwind"].includes(moveID)) warnings.push("Roar");
+					if (["selfdestruct", "explosion", "memento"].includes(moveID)) warnings.push("Self-KO");
+					if (move.recoil) warnings.push("Recoil");
+				}
+
+				warnings = [...new Set(warnings)];
+			}
+
+			return BattleSearch.renderTaggedLocationPokemonRowInner(template, desc, minLevel, maxLevel, warnings);
 		}
 	},
 	handleScroll: function() {
